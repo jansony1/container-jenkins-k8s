@@ -2,7 +2,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: jenkins-server
-  namespace: kube-system
+  namespace: kube-jenkins
 spec:
   template:
     metadata:
@@ -13,8 +13,12 @@ spec:
       serviceAccountName: jenkins-server
       containers:
       - name: jenkin-server
-        image: jenkinsci/blueocean
-        imagePullPolicy: IfNotPresent
+        image: 182335798701.dkr.ecr.cn-northwest-1.amazonaws.com.cn/jenkins-update-repo:v1
+        imagePullPolicy: Always
+        command: ["/bin/sh", "-c"]
+        args:
+         - echo starting;
+           /sbin/tini -- /usr/local/bin/jenkins.sh;
         ports:
         - containerPort: 8080
           name: web
@@ -45,23 +49,21 @@ spec:
           failureThreshold: 12
         volumeMounts:
         - name: jenkinshome
-          subPath: jenkins2
           mountPath: /var/jenkins_home
       nodeSelector:
-        failure-domain.beta.kubernetes.io/zone: failure-domain.beta.kubernetes.io/zone=cn-northwest-1a
+          failure-domain.beta.kubernetes.io/zone: cn-northwest-1a
       securityContext:
         fsGroup: 1000
       volumes:
       - name: jenkinshome
         persistentVolumeClaim:
           claimName: jenkins-pvc
-
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: jenkins-server
-  namespace: kube-system
+  namespace: kube-jenkins
   labels:
     app: jenkins-server
 spec:
