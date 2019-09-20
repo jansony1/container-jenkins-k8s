@@ -2,7 +2,7 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: jenkins-pvc
-  namespace: kube-system
+  namespace: kube-jenkins
 spec:
   storageClassName: ebs-gp2
   accessModes:

@@ -10,3 +10,5 @@ parameters:
   fsType: ext4
 reclaimPolicy: Retain  # Useful in case you delete the PersistentVolumeClaim
 allowVolumeExpansion: true
+
+
