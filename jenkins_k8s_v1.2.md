@@ -38,7 +38,7 @@ $ cd container/asset
 
 ```
 $ sed -i 's/cn-northwest-1a/cn-north-1a/g' sc.yaml
-$ sed -i 's/cn-northwest-1a/cn-north-1/g' jenkins.yaml
+$ sed -i 's/cn-northwest-1a/cn-north-1a/g' jenkins.yaml
 ```
 一键部署
 ```
