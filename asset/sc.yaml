@@ -5,7 +5,7 @@ metadata:
 provisioner: kubernetes.io/aws-ebs
 parameters:
   type: gp2 
-  zones: cn-north-1a
+  zones: cn-northwest-1a
   iopsPerGB: "3" 
   fsType: ext4
 reclaimPolicy: Retain  # Useful in case you delete the PersistentVolumeClaim

@@ -13,7 +13,7 @@ spec:
       serviceAccountName: jenkins-server
       containers:
       - name: jenkin-server
-        image: 182335798701.dkr.ecr.cn-northwest-1.amazonaws.com.cn/jenkins-update-repo:v1
+        image: 182335798701.dkr.ecr.cn-northwest-1.amazonaws.com.cn/jenkins-update-repo:v1.1
         imagePullPolicy: Always
         command: ["/bin/sh", "-c"]
         args:
@@ -51,7 +51,7 @@ spec:
         - name: jenkinshome
           mountPath: /var/jenkins_home
       nodeSelector:
-          failure-domain.beta.kubernetes.io/zone: cn-north-1a
+          failure-domain.beta.kubernetes.io/zone: cn-northwest-1a
       securityContext:
         fsGroup: 1000
       volumes:
