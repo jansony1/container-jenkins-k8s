@@ -19,12 +19,15 @@
 7. Jenkins slave pod执行应用服务的更新任务
 8. 应用服务pod所在节点拉取相应的镜像，完成镜像的替换，即应用的更新
 
-##	前提条件
+##	项目环境
 
-1. 已部署k8s集群([部署连接])(https://github.com/nwcdlabs/kops-cn/blob/master/README_en.md#HOWTO) ，并且设置了国内docker源
-2. Clone 此repo到本地
+1. 已部署k8s集群 ([部署连接](https://github.com/nwcdlabs/kops-cn/blob/master/README_en.md#HOWTO))，**版本为1.13.5**，并且**建议配置国内docker源**
+2. 基于**Linux的工作机**，并且该工作机具有以下配置
+   * 访问到1中集群所必备的**$HOME/.kube/config** [配置](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/)
+   * **kubectl v1.13.5 **[命令行](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+3. Clone 此repo到本地
 
-## 步骤一:  安装jenkins server于k8s之上（直接部署）
+## 步骤一:  安装jenkins master server于k8s之上（直接部署）
 
 如果**不关心配置的细节**，可以执行此步骤，然后跳转到**步骤二的第7步**
 
@@ -32,15 +35,16 @@
 $ cd container/asset
 ```
 **如果是北京区**, 请执行
+
 ```
-$ sed -i 's/cn-northwest-1/cn-north-1/g' sc.yaml
-$ sed -i 's/cn-northwest-1/cn-north-1/g' jenkins.yaml
+$ sed -i 's/cn-northwest-1a/cn-north-1a/g' sc.yaml
+$ sed -i 's/cn-northwest-1a/cn-north-1/g' jenkins.yaml
 ```
 一键部署
 ```
 $ kubectl apply -f .
 ```
-## 步骤二:  安装jenkins server于k8s之上 （细节介绍）
+## 步骤二:  安装jenkins master server于k8s之上 （细节介绍）
 
 **如果已经执行步骤一，可直接跳过执行步骤三**
 
@@ -75,7 +79,7 @@ $ kubectl apply -f .
 
    配置好相应的存储类后，我们就可以声明jenkins所需要的存储大小，执行以下操作
    ```
-   $ cat jenskin-volum.yaml
+   $ cat jenskin-volume.yaml
    kind: PersistentVolumeClaim
    apiVersion: v1
    metadata:
@@ -284,7 +288,7 @@ $ kubectl apply -f .
    ```
    其中**a6c85f1b2cda011e9b41502c1675*t-1.elb.amazonaws.com.cn**对应的即为对外暴露的负载均衡器地址
 
-## 步骤二 :  配置jenkins为利用k8s pod启动 jenkins slave 
+## 步骤二 :  配置k8s pod作为jenkins slave的执行环境
 
 1. jenkins 初始化
 
@@ -292,9 +296,11 @@ $ kubectl apply -f .
 
    ![jenkins 初始化](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.1+jenkins+init.png)
 
-   安装完毕后会指引用户创建第一个admin 用户，输入相关用户名和密码点击保存和继续，从而进入jenkins主界面. **此处因为预先安装了所列插件，会很快完成** 
+   安装完毕后会指引用户创建第一个admin 用户，输入相关用户名和密码点击保存和继续，从而进入jenkins主界面. **此处因为预先安装了所列插件，会很快完成**。
 
-3. 配置jenkins于kubernetes集成
+   > 安装完插件后，会进行重启界面，如果重启等待事件过长，可尝试手动刷新页面
+
+2. 配置jenkins于kubernetes集成
 
    安装好kubernetes组件后，接下来我们需要配置jenkins slave作为kubenetes的pod进行执行。如下图所示，进入jenkins的全局配置界面
 
@@ -306,30 +312,55 @@ $ kubectl apply -f .
 
    如下图进行配置，
 
-   ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.3.3+new+cloud.png)
+   ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.2.2+k8s-plugin.png)
+
+   其中：
+
+   * **Name**: kubernetes
+   * **Kubernetes URL**： https://kubernetes.default.svc.cluster.local
+   * **Jenkins URL**: http://jenkins-server.kube-jenkins.svc.cluster.local:8080
+   * **Kubernetes Namespace**: kube-jenkins
 
    配置完毕后，点击**右下方**的**test connection**，如果出现 Connection test successful 的提示信息证 Jenkins 已经可以和 Kubernetes 系统正常通信了；如果测试不成功，请仔细检查参数是否正确
 
-   > 其中service名可以通过 kubectl get svc -n somens 得到默认somens namespace下的所有service
-
-   
+   > 如果jenkins在该k8s集群之外，还需要配置Credentials参数
 
 4. 配置jenkins slave pod参数
    配置jenkins-slave pod如下图所示, 其中由于插件自身的问题，**Name一定要写为[jnlp](https://stackoverflow.com/questions/42124958/connection-dropped-for-jenkins-slave-on-kubernetes)**
 
-   ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.4.1+pod+config.png)
+   ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.3.5+pod_template.png)
 
-   其中需要注意的是上图的**Labels**以及其下一栏的 **only build jobs ...**, 两者组合起来表示，后续再执行jenkins任务的时候，只有指定**node labels**为**jenkins-slave-k8s**才会利用kubernetes pod的模式执行jenkins job
+   其中需要注意的是上图的**Labels**以及其下一栏的 **only build jobs ...**, 两者组合起来表示，后续再执行jenkins任务的时候，只要指定**node labels**为**jenkins-slave-k8s**就会利用kubernetes pod的模式执行jenkins job。
 
-   > 如果在之后运行job的过程中出现镜像一直无法pull下来的状况，可以更改上面的docker image为182335798701.dkr.ecr.cn-northwest-1.amazonaws.com.cn/jenkins-slave:jnlp6
+   其中：
    
-   接下来，因为jenkins slave执行在docker之中，而slave之中又要执行docker，kubectl等操作，所以我们需要把宿主机（对应的worker）上的环境mount到docker之中，配置如下
-   ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.4.2+volume+mount.png)
-
+   **Kubernetes Pod template**具体参数：
+   
+* Name： jnlp
+   * Namespace： kube-jenkins
+   * Labels: jenkins-slave-k8s
+   * Usage: 如上图所示
+   
+   **Container template**具体参数：
+   
+   - Name: jnlp
+   - Docker image: 182335798701.dkr.ecr.cn-northwest-1.amazonaws.com.cn/jenkins-slave:jnlp6
+   - Working Directory: /home/jenkins/agent
+   
+   其中镜像为基于[jenkins-slave](https://github.com/jenkinsci/docker-slave)添加了**kubectl命令行工具**定制而成。
+   
+   接下来，因为jenkins slave执行在docker之中，而slave之中又要执行docker build等相关操作，所以我们需要把宿主机（对应的worker）上的环境mount到docker之中，配置如下
+   ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.3.3+volumemount.png)
+   
    > 挂载docker.sock是为了和docker.daemon进行通信
-   > 挂载.kube是为了获取执行kubectl指令的配置参数
+   
+   下一步，有项目架构的第八步可知，需要再jenkins-slave中利用kubectl apply 实现替换应用镜像的操作，那    么jenkins-slave需要具有一定的权限；而在kubernetes中，赋予pod对应权限的属性为**serviceaccount**，故点击**Advance tab**，填写对应的serviceaccount如下图所示
+   
+   ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.3.4+serviceaccount.png)
+   
+   > jenkins-server此serviceaccount在本实验中赋予了类似admin的权限，生产环境中请自行配置合适的权限
 
-   此时点击**左下角的save**，整个jenkins与k8s的集成便完成了  
+​       此时点击**左下角的save**，整个jenkins与k8s的集成便完成了  
 
 5. 简单测试
 
@@ -345,21 +376,27 @@ $ kubectl apply -f .
 
    ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.5.3+shell.png)
 
-   在输入框中输入如下
+   在显示的输入框中输入如下指令
 
-   ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.5.4+shell+script.png)
-
-   其中
-
-   > docker info 是为了查看能否成功调用docker daemon
-   > kubectl get pod 是为了查看是否调用宿主机的.kube配置文件，从而连接apiserver
+   ```
+echo "just test"
+   echo "#######docker cli ######"
+docker info
+   echo "#######kubectl cli ######"
+   kubectl cluster-info
+```
+   
+其中
+   
+> docker info 是为了查看能否成功调用docker daemon
+   > kubectl cluster-info 是为了查看是否和apiserver建立了正确的链接
 
    点击保存后，此时处于项目的界面，点击右侧的build now，开始构建
-
+   
    > 如果构建过程中一直出现，worker offline等job pending的状况，可以从jenkins -> Manage Jenkins -> System log处查看是否有错误提示
-
+   
    构建成功后，build hisotry处会出现如下的标识（蓝色）
-
+   
    ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.5.5+build+success.png)
 
 
@@ -373,31 +410,30 @@ $ kubectl apply -f .
    *******
    + echo #######kubectl cli #####
    #######kubectl cli #####
-   + kubectl get pod
-   NAME                              READY   STATUS    RESTARTS   AGE
-   jenkins-server-8658b744fc-4r47f   1/1     Running   0          161m
-   jnlp-3qjfw                        1/1     Running   0          5s
-   Finished: SUCCESS
+   + kubectl cluster-info
+   ***
+   Kubernetes master is running at *****
+   KubeDNS is running at ***
    
    ```
-
-   这样说明我们整个流程已经配通
+   
+这样说明我们整个流程已经配通
 
 ## 步骤三 :  配置主动推送模式下的Pipeline
 
 ### 实验说明
 
-  本实验是基于github private repo进行的，所以请先在github上创建好私有仓库
+  本实验是基于github private repo进行的，所以**请先在github上创建好私有仓库**
 
 1. 配置代码仓库
 
    下载模板代码库
 
    ```
-   $ git clone https://github.com/jansony1/jenkins-new-public.git
+   $ git clone https://github.com/jansony1/jenkins-new-pub.git
    ```
 
-   配置源为实验者自身代码仓库
+   配置源为**实验者自身代码仓库**
 
    ```
    $ git remote add origin your_private_repo_url
@@ -419,9 +455,9 @@ $ kubectl apply -f .
    ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/3.2.1+github+credentials.png)
    其中
 
-   * Username为github登录的用户名
-   * Password为github对应的密码
-   * Description可以填写为有意义的描述，以便日后区分
+   * **Username**: github登录的用户名
+   * **Password**: github对应的密码
+   * **Description**: 可以填写为有意义的描述，以便日后区分
 
    点击确认，github访问的秘钥即创建完毕
 
@@ -431,7 +467,7 @@ $ kubectl apply -f .
 
    ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/3.2.2+AKSK.png)
 
-   填写具有足够ECR读写权限角色对应的[AKSK](https://docs.aws.amazon.com/zh_cn/AmazonECR/latest/userguide/ECR_IAM_policies.html)，点击保存
+   填写具有**足够ECR读写权限**角色对应的[AKSK](https://docs.aws.amazon.com/zh_cn/AmazonECR/latest/userguide/ECR_IAM_policies.html)，然后点击保存
 
 3. Pipeline项目逻辑
 
@@ -454,7 +490,7 @@ $ kubectl apply -f .
 
    ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/3.4.2+pipeline+configure.png)
 
-   其中Script 处就是我们写Pipeline Script (Groovy)调度脚本的地方，下方列出了一个基本的模板
+   其中Script 处就是我们写Pipeline Script (Groovy)调度脚本的地方，下方列出了一个**基本的模板**
 
    ```
    node('jenkins-slave-k8s') {
@@ -514,8 +550,7 @@ $ kubectl apply -f .
 
    * **Git Clone Stage**
 
-   在该环节中，需要修改的为如下所示的Git相关的参数
-       
+   在该环节中，需要修改的为如下所示的Git相关的参数，修改的办法见下述文档。
    ```
    stage('1.Clone') {
            		**
@@ -538,12 +573,14 @@ $ kubectl apply -f .
    git credentialsId: 'c8d7ea58-aa4b-425b-b74e-51a066ab560b', url: 'https://github.com/jansony1/jenkins-new.git'
    ```
 
-   使用该配置，替换样本项目中的git配置; 同时，用户也需要用自己的ECR地址，修改下面的地址
+   使用该配置，替换样本项目中的git配置; 同时，用户也**需要修改下面的ECR地址为自己的对应ECR库地址**，[如何创建ECR仓库请参考](https://docs.aws.amazon.com/zh_cn/AmazonECR/latest/userguide/ECR_GetStarted.html)
 
    ```
     repo_name = '182335798701.dkr.ecr.cn-northwest-1.amazonaws.com.cn'
     app_name = 'jenkins-demo'
    ```
+
+   其中**repo_name**为每个AWS ECR账号特有的repo地址，**app_name**为对应的应用名称，本模板中展示的即为**182335798701.dkr.ecr.cn-northwest-1.amazonaws.com.cn**repo下的**jenkins-demo**应用
 
    * **Push Stage**
 
@@ -552,7 +589,7 @@ $ kubectl apply -f .
    stage('4.Push') {
            echo "4.Push Docker-Image Stage"
            withDockerRegistry(credentialsId: 'ecr:cn-northwest-1:44d5ee4f-232d-408d-bbf0-8ebbc8156fd0', url: 'https://182335798701.dkr.ecr.cn-northwest-1.amazonaws.com.cn') {
-              sh "docker push ${repo_name}:${build_tag}"
+              sh "docker push ${repo_name}/${app_name}:${build_tag}"
            }
        }
    ```
@@ -569,11 +606,11 @@ $ kubectl apply -f .
    }
    ```
 
-   > 此时**需要注意**, 该插件存在一定的bug，无法为docker repo添加其协议头，即我们需要手动在上面的地址前面添加**https://**
+   > 此时**需要注意**, 该插件存在一定的bug，无法为docker repo添加其协议头，即我们需要手动在上面的url前面添加**https://**
 
-   然后可以将生成的语法，替换掉模板处相关的信息
+   然后可以将生成的语法，替换掉模板处相关的信息。
 
-   **最后点击保存**，从而保存项目 
+   在点击保存前，可以将该修改过后的script复制到常用的记事本中，以便后续试验使用； **最后点击保存**，从而保存项目。
 
 5. Pipeline项目测试
 
@@ -585,9 +622,9 @@ $ kubectl apply -f .
 
    > 因为本项目由用户交互的存在，即输出部署的环境，所以必须点进具体的项目中，进行环境的的选择
 
-   进入具体项目后，点击下图所示的Console log后，可以看到具体每一步的输出​   
+   进入具体项目后，点击下图所示的Console Output后，可以看到具体每一步的输出​   
    ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/3.5+console+log.png)
-   ​进入后，点击下面的input requested，选择需要部署的环境
+   ​因为本实验在stage5中设置了**手动选择环境步骤**，所以在Output中，需要手动点击下面的**input requested**，从而选择需要部署的环境。
    ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/3.5.2+input+choice.png)
    ​最后界面看到如下的输出，表明CICD流程走通 
 
@@ -602,6 +639,7 @@ $ kubectl apply -f .
     [Pipeline] End of Pipeline
     Finished: SUCCESS
    ```
+
 ## 步骤四 :  基于Github Webhook的触发模式
 
 1. 新建pipeline项目
@@ -616,11 +654,11 @@ $ kubectl apply -f .
 
    其中
 
-   * Repository URL:  相关github项目地址
-   * Credentials：在步骤3.2中配置的github访问秘钥
-   * Script Path: 在进入到相关github项目后，实际执行脚本的名字
+   * **Repository URL**:  相关github项目地址
+   * **Credentials**：在步骤3.2中配置的github访问秘钥
+   * **Script Path**: 在进入到相关github项目后，实际执行脚本的名字
 
-   相关的Jenkinsfile在https://github.com/jansony1/jenkins-new-public已经提供, **其和我们在步骤三中使用的脚本一样，需要用户替换成自己的相关参数**, 此时我们可以从上一个项目中把Pipeline script粘贴下来，替换下面的文件内容
+   **其和我们在步骤三中使用的脚本一样，需要用户替换成自己的相关参数**, 此时我们可以从上一个项目中把Pipeline script粘贴下来，替换下面的文件内容
 
    ```
    $ vim Jenkinsfile
@@ -644,16 +682,14 @@ $ kubectl apply -f .
 
    ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/4.2.2+webhook.png)
 
-   然后填写下图所示的**payload url**
+   然后填写下图所示的**payload url**, 该URL为jenkins接受github推送事件的webhook地址。其**格式**为
+
+   ```jenkin:8080/github-webhook/
+jenkins-url:8080/github-webhook/
+   ```
 
    ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/4.2.3+add+webhook.png)
-
-   该url地址的格式为
-
-   ```
-   jenkins-url:8080/github-webhook/
-   ```
-
+   
    另外本实验中只配置了基于Push Event的触发，如果有基于Merge等请求的触发，可以点击上图中触发Events里面的 **Let me select individual event**
 
 3. 测试
@@ -673,9 +709,9 @@ $ kubectl apply -f .
    ```
    查看项目的Dashboard
    ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/4.3.1+result.png)
-​   可以看到项目被成功构建
+​  可以看到项目被成功构建；**同步骤三**，需要点击进具体的项目中完成部署环境的选择
    
-   >某些情况下，会出现push后无法触发的结果，此时
+   ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/3.5.2+input+choice.png)
 
 4. 错误排除
 
@@ -683,7 +719,7 @@ $ kubectl apply -f .
 
    * 首先检查github处webhook的发送是否成功
    * 查看jenkins system log 看是否成功收到webhook通知
-   * 某些情况下，需要先执行一遍步骤三的主动触发，才能够顺利实现步骤四的被动触发，[详情见](https://issues.jenkins-ci.org/browse/JENKINS-35132)
+   * 某些情况下，需要先本项目执行一遍步骤三的主动触发，然后更改为被动的逻辑，才能够顺利实现步骤四的被动触发，[详情见](https://issues.jenkins-ci.org/browse/JENKINS-35132)
 
 ​	
 

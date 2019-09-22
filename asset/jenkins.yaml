@@ -51,7 +51,7 @@ spec:
         - name: jenkinshome
           mountPath: /var/jenkins_home
       nodeSelector:
-          failure-domain.beta.kubernetes.io/zone: cn-northwest-1a
+          failure-domain.beta.kubernetes.io/zone: cn-north-1a
       securityContext:
         fsGroup: 1000
       volumes:
