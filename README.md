@@ -434,6 +434,7 @@ $ kubectl apply -f .
    配置源为**实验者自身代码仓库**
 
    ```
+   $ git remote rm origin
    $ git remote add origin your_private_repo_url
    $ git push -u origin master
    ```
