@@ -379,19 +379,16 @@ $ kubectl apply -f .
    在显示的输入框中输入如下指令
 
    ```
-echo "just test"
+   echo "just test"
    echo "#######docker cli ######"
-docker info
+   docker info
    echo "#######kubectl cli ######"
    kubectl cluster-info
-```
+   ```
    
-其中
-   
-> docker info 是为了查看能否成功调用docker daemon
-   > kubectl cluster-info 是为了查看是否和apiserver建立了正确的链接
+   其中, ``docker info`` 是为了查看能否成功调用docker daemon,  ``kubectl cluster-info`` 是为了查看是否和apiserver建立了正确的链接。
 
-   点击保存后，此时处于项目的界面，点击右侧的build now，开始构建
+   点击保存后，此时处于项目的界面，点击右侧的build now，开始构建。
    
    > 如果构建过程中一直出现，worker offline等job pending的状况，可以从jenkins -> Manage Jenkins -> System log处查看是否有错误提示
    
@@ -685,7 +682,7 @@ docker info
    然后填写下图所示的**payload url**, 该URL为jenkins接受github推送事件的webhook地址。其**格式**为
 
    ```jenkin:8080/github-webhook/
-jenkins-url:8080/github-webhook/
+   jenkins-url:8080/github-webhook/
    ```
 
    ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/4.2.3+add+webhook.png)
