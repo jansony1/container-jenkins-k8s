@@ -2,7 +2,7 @@
 
 ## 目的
 
-​    本项目主要目的为在k8s on AWS上实现基于jenkins pipeline的CI/CD ，其中会利用到Github Private为托管代码仓库，ECR（AWS 托管镜像仓库）为私有镜像仓库，k8s pod作为jenkins slave，jenkins pipeline作为流程引擎
+​    本项目主要目的为在k8s on AWS上实现基于jenkins pipeline的CI/CD ，其中会利用到Github Private为托管代码仓库，ECR（AWS 托管镜像仓库）为私有镜像仓库，k8s pod 作为jenkins master执行 jenkins pipeline任务的调度，k8s pod作为jenkins slave作为具体任务的执行环境.
 
 ## 项目架构
 
@@ -32,7 +32,7 @@
 如果**不关心配置的细节**，可以执行此步骤，然后跳转到**步骤二的第7步**
 
 ```
-$ cd container/asset
+$ cd asset
 ```
 **如果是北京区**, 请执行
 
@@ -336,7 +336,7 @@ $ kubectl apply -f .
    
    **Kubernetes Pod template**具体参数：
    
-* Name： jnlp
+   * ​Name： jnlp
    * Namespace： kube-jenkins
    * Labels: jenkins-slave-k8s
    * Usage: 如上图所示
@@ -414,6 +414,7 @@ $ kubectl apply -f .
    
    ```
    
+
 这样说明我们整个流程已经配通
 
 ## 步骤三 :  配置主动推送模式下的Pipeline
