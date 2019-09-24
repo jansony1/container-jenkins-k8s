@@ -49,7 +49,7 @@ $ kubectl apply -f .
 
    进入项目目录
    ```
-   $ cd container/asset
+   $ cd asset
    ```
    查看对应的存储配置文件
    ```
@@ -68,8 +68,8 @@ $ kubectl apply -f .
    ```
    通过上述文件，我们可以配置了一个可用的StorageClass，其中需要注意的是，如果 **需要部署在北京区**，请执行以下操作，如果**部署在宁夏区保持默认**即可
    ```
-   sed -i 's/cn-northwest-1/cn-north-1/g' sc.yaml
-   sed -i 's/cn-northwest-1/cn-north-1/g' jenkins.yaml
+   sed -i 's/cn-northwest-1a/cn-north-1a/g' sc.yaml
+   sed -i 's/cn-northwest-1a/cn-north-1a/g' jenkins.yaml
    ```
    
 2. 配置相应的存储大小请求
