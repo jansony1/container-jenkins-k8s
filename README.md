@@ -90,11 +90,11 @@ $ kubectl apply -f .
        requests:
          storage: 20Gi # 声明的存储大小
    ```
-   其中具体的参数，可以参照注释缩写
+   其中具体的参数，可以参照注释所写
    
 3. 配置jenkins server所需要的k8s权限
 
-   配置jenkins server在kube-jenkinsnamespace具有足够的权限
+   配置jenkins server在kube-jenkins namespace具有足够的权限
 
    ```
    $ cat jenkins-rbac.yaml
@@ -295,7 +295,7 @@ $ kubectl apply -f .
 
    安装完毕后会指引用户创建第一个admin 用户，输入相关用户名和密码点击保存和继续，从而进入jenkins主界面. **此处因为预先安装了所列插件，会很快完成**。
 
-   > 创建完用户后，会进入到重启界面，如果重启等待事件过长，可尝试手动刷新页面
+   > 创建完用户后，会进入到重启界面，如果重启等待时间过长，可尝试手动刷新页面
 
 2. 配置jenkins于kubernetes集成
 
