@@ -1,8 +1,7 @@
-# k8s on aws 实现基于jenkins pipeline的CI/CD
+# 基于jenkins打造kubernetes on aws上的CI/CD管道
 
-## 目的
-
-​    本项目主要目的为在k8s on AWS上实现基于jenkins pipeline的CI/CD ，其中会利用到Github Private为托管代码仓库，ECR（AWS 托管镜像仓库）为私有镜像仓库，k8s pod作为jenkins slave，jenkins pipeline作为流程引擎
+## 介绍
+本博客将会利用jenkins pipeline实现对于存储在Github上的代码在kubernetes平台之上的CI/CD管道，其中会以云原生的方式，将jenkins master，jenkins slave全部部署于kubernetes之上，从而打造一个高可用，弹性伸缩的CI/CD管道。此外，项目中还会涉及到kubernetes on AWS的特有特性，AWS上的镜像仓库（ECR）等知识的介绍.
 
 ## 项目架构
 
@@ -19,7 +18,7 @@
 7. Jenkins slave pod执行应用服务的更新任务
 8. 应用服务pod所在节点拉取相应的镜像，完成镜像的替换，即应用的更新
 
-##	项目环境
+## 项目环境
 
 1. 已部署k8s集群 ([部署连接](https://github.com/nwcdlabs/kops-cn/blob/master/README_en.md#HOWTO))，**版本为1.13.5**，并且**建议配置国内docker源**
 2. 基于**Linux的工作机**，并且该工作机具有以下配置
