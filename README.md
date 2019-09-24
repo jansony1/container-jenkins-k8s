@@ -7,8 +7,6 @@
 
 ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/whole_pic.png)
 
-
-
 1. 推送代码到托管镜像仓库
 2. Github 基于webhook触发jenkins pipeline项目
 3. Jenkins master分配kubernetes slave作为项目的执行环境，同时k8s启动slave pod
@@ -31,7 +29,7 @@
 如果**不关心配置的细节**，可以执行此步骤，然后跳转到**步骤二的第7步**
 
 ```
-$ cd container/asset
+$ cd asset
 ```
 **如果是北京区**, 请执行
 
@@ -335,7 +333,7 @@ $ kubectl apply -f .
    
    **Kubernetes Pod template**具体参数：
    
-* Name： jnlp
+   * ​Name： jnlp
    * Namespace： kube-jenkins
    * Labels: jenkins-slave-k8s
    * Usage: 如上图所示
@@ -378,19 +376,16 @@ $ kubectl apply -f .
    在显示的输入框中输入如下指令
 
    ```
-echo "just test"
+   echo "just test"
    echo "#######docker cli ######"
-docker info
+   docker info
    echo "#######kubectl cli ######"
    kubectl cluster-info
-```
+   ```
    
-其中
-   
-> docker info 是为了查看能否成功调用docker daemon
-   > kubectl cluster-info 是为了查看是否和apiserver建立了正确的链接
+   其中, ``docker info`` 是为了查看能否成功调用docker daemon,  ``kubectl cluster-info`` 是为了查看是否和apiserver建立了正确的链接。
 
-   点击保存后，此时处于项目的界面，点击右侧的build now，开始构建
+   点击保存后，此时处于项目的界面，点击右侧的build now，开始构建。
    
    > 如果构建过程中一直出现，worker offline等job pending的状况，可以从jenkins -> Manage Jenkins -> System log处查看是否有错误提示
    
@@ -416,6 +411,7 @@ docker info
    
    ```
    
+
 这样说明我们整个流程已经配通
 
 ## 步骤三 :  配置主动推送模式下的Pipeline
@@ -435,6 +431,7 @@ docker info
    配置源为**实验者自身代码仓库**
 
    ```
+   $ git remote rm origin
    $ git remote add origin your_private_repo_url
    $ git push -u origin master
    ```
@@ -684,7 +681,7 @@ docker info
    然后填写下图所示的**payload url**, 该URL为jenkins接受github推送事件的webhook地址。其**格式**为
 
    ```jenkin:8080/github-webhook/
-jenkins-url:8080/github-webhook/
+   jenkins-url:8080/github-webhook/
    ```
 
    ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/4.2.3+add+webhook.png)
