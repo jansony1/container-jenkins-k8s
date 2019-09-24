@@ -20,7 +20,7 @@
 
 1. 已部署k8s集群 ([部署连接](https://github.com/nwcdlabs/kops-cn/blob/master/README_en.md#HOWTO))，**版本为1.13.5**，并且**建议配置国内docker源**
 2. 基于**Linux的工作机**，并且该工作机具有以下配置
-   * 访问到1中集群所必备的**$HOME/.kube/config** [配置](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/)
+   * 访问到1中集群所必备的 **$HOME/.kube/config** [配置](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/)
    * **kubectl v1.13.5**[命令行](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 3. Clone 此repo到本地
 
