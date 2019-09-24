@@ -717,13 +717,6 @@ $ kubectl apply -f .
    * 查看jenkins system log 看是否成功收到webhook通知
    * 某些情况下，需要先本项目执行一遍步骤三的主动触发，然后更改为被动的逻辑，才能够顺利实现步骤四的被动触发，[详情见](https://issues.jenkins-ci.org/browse/JENKINS-35132)
 
-​	
-
-## 下一章 :  
-
-## 基于Github Webhook的multi-branch触发模式
-
-## 集成GITLAB private repo
 
 
 
